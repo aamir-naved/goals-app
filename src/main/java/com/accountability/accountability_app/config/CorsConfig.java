@@ -14,13 +14,13 @@ public class CorsConfig {
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
                         .allowedOrigins(
-                                "http://localhost:5174", // Local dev frontend
-                                "https://goals-frontend-6lanygqz4-aamir-naveds-projects.vercel.app", // Deployed frontend
-                                "https://goals-frontend-tau.vercel.app" // Main frontend URL
+                                "http://localhost:5174", // Local frontend
+                                "https://goals-frontend-6lanygqz4-aamir-naveds-projects.vercel.app",
+                                "https://goals-frontend-tau.vercel.app"
                         )
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowedHeaders("*")
-                        .allowCredentials(true);
+                        .allowCredentials(true); // REQUIRED when sending cookies or auth headers
             }
         };
     }
