@@ -20,16 +20,23 @@ public class CorsFilterConfig implements Filter {
 
         System.out.println("CORS Filter: Request received - " + request.getMethod() + " " + request.getRequestURI());
 
-        response.setHeader("Access-Control-Allow-Origin", "http://localhost:5174");
+        // Allow all origins (for testing) — change this to specific domains later
+        response.setHeader("Access-Control-Allow-Origin", "*");
+
+        // Allow all common HTTP methods
         response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-        response.setHeader("Access-Control-Allow-Headers", "Authorization, Content-Type, X-Requested-With");
+
+        // Allow all necessary headers
+        response.setHeader("Access-Control-Allow-Headers", "Authorization, Content-Type, X-Requested-With, Accept, Origin");
+
+        // Allow sending credentials (cookies, authorization headers)
         response.setHeader("Access-Control-Allow-Credentials", "true");
 
         System.out.println("CORS Headers set for response.");
 
+        // Handle preflight requests (OPTIONS)
         if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
             response.setStatus(HttpServletResponse.SC_OK);
-            System.out.println("Preflight request (OPTIONS) handled.");
             return;
         }
 
