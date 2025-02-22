@@ -29,7 +29,7 @@ public interface AccountabilityPartnerRepository extends JpaRepository<Accountab
     List<Goal> findPartnerGoals(@Param("userId") Long userId);
 
 
-    List<AccountabilityPartner> findByPartnerIdAndStatus(Long partnerId, AccountabilityPartner.Status status);
+    List<AccountabilityPartner> findByUserIdAndStatus(Long userId, AccountabilityPartner.Status status);
 
     // Find all partnerships where the user is either the requester or the partner
     @Query("SELECT u FROM User u WHERE u.id IN (SELECT ap.partner.id FROM AccountabilityPartner ap WHERE ap.user.id = :userId AND ap.status = 'ACCEPTED')")

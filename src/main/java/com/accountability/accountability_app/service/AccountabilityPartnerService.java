@@ -161,7 +161,7 @@ public class AccountabilityPartnerService {
 
     public List<AccountabilityPartnerDTO> getPendingRequests(Long userId) {
         List<AccountabilityPartner> pendingRequests =
-                accountabilityPartnerRepository.findByPartnerIdAndStatus(userId, AccountabilityPartner.Status.PENDING);
+                accountabilityPartnerRepository.findByUserIdAndStatus(userId, AccountabilityPartner.Status.PENDING);
 
         return pendingRequests.stream()
                 .map(partner -> new AccountabilityPartnerDTO(
