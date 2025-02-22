@@ -66,9 +66,9 @@ public class AccountabilityPartnerController {
     }
 
     @GetMapping("/partnerGoals")
-    public ResponseEntity<List<Goal>> getPartnerGoals(@RequestParam Long userId) {
+    public ResponseEntity<List<Goal>> getPartnerGoals(@RequestParam Long partnerId) {
         System.out.println("Received call in getPartnerGoals");
-        List<Goal> partnerGoals = accountabilityPartnerService.getPartnerGoals(userId);
+        List<Goal> partnerGoals = accountabilityPartnerService.getPartnerGoals(partnerId);
         return ResponseEntity.ok(partnerGoals);
     }
 }

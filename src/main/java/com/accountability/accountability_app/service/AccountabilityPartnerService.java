@@ -25,6 +25,9 @@ public class AccountabilityPartnerService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private GoalService goalService;
+
     public String sendRequest(Long senderId, Long receiverId) {
         System.out.println("Sending request from " + senderId + " to " + receiverId);
         Optional<User> senderOpt = userRepository.findById(senderId);
@@ -182,12 +185,12 @@ public class AccountabilityPartnerService {
         return new PartnerDTO(user.getId(), user.getName(), user.getEmail(), goalDTOs);
     }
 
-    public List<Goal> getPartnerGoals(Long userId) {
-        System.out.println("Fetching goals of all partners for userId: " + userId);
-        User user = userRepository.findById(userId).orElse(null);
+    public List<Goal> getPartnerGoals(Long partnerId) {
+        System.out.println("Fetching goals of this partner , basically a user: userId: " + partnerId);
+//        User user = userRepository.findById(userId).orElse(null);
+        List<Goal> goals = goalService.getUserGoals(partnerId);
+        if (goals == null) return new ArrayList<>();
 
-        if (user == null) return new ArrayList<>();
-
-        return accountabilityPartnerRepository.findGoalsOfAcceptedPartners(user);
+        return goals;
     }
 }
