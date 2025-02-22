@@ -30,18 +30,31 @@ public class AccountabilityPartnerService {
 
     public String sendRequest(Long senderId, Long receiverId) {
         System.out.println("Sending request from " + senderId + " to " + receiverId);
-        Optional<User> senderOpt = userRepository.findById(senderId);
-        Optional<User> receiverOpt = userRepository.findById(receiverId);
 
-        if (senderOpt.isEmpty() || receiverOpt.isEmpty()) {
+        /*
+        so, If sender is user3, and receiver is user 2,
+        then user3 wants to make user 2 his accountablity master,
+        meaning user3 is willing to show his goals to user2,
+        user 2 can access goals of user 3,
+
+        Basically user3 ke goals dikhenge user 2 ko
+        so user 3 or say the sender is slave,
+        and user 2, the receiver is master.
+         */
+        Long slave = senderId;
+        Long master = receiverId;
+        Optional<User> slaveOpt = userRepository.findById(slave);
+        Optional<User> masterOpt = userRepository.findById(master);
+
+        if (slaveOpt.isEmpty() || masterOpt.isEmpty()) {
             return "User not found.";
         }
 
-        User sender = senderOpt.get();
-        User receiver = receiverOpt.get();
+        User slaveUser = slaveOpt.get();
+        User masterUser = masterOpt.get();
 
         // Check if a partnership already exists
-        List<AccountabilityPartner> existingPartnership = accountabilityPartnerRepository.findByUserAndPartner(sender, receiver);
+        List<AccountabilityPartner> existingPartnership = accountabilityPartnerRepository.findByUserAndPartner(masterUser, slaveUser);
 //        List<AccountabilityPartner> existingPartnershipReverse = accountabilityPartnerRepository.findByUserAndPartner(receiver, sender);
 
         for (AccountabilityPartner partnership : existingPartnership) {
@@ -58,13 +71,13 @@ public class AccountabilityPartnerService {
 //            return checkPartnershipStatus(partnership);
 //        }
 
-        return createNewPartnership(sender, receiver);
+        return createNewPartnership(slaveUser, masterUser);
     }
 
-    private String createNewPartnership(User sender, User receiver) {
+    private String createNewPartnership(User slaveUser, User masterUser) {
         AccountabilityPartner request = new AccountabilityPartner();
-        request.setUser(sender);
-        request.setPartner(receiver);
+        request.setUser(masterUser);
+        request.setPartner(slaveUser);
         request.setStatus(AccountabilityPartner.Status.PENDING);
         accountabilityPartnerRepository.save(request);
         return "Request sent successfully.";
