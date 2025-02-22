@@ -1,5 +1,8 @@
 package com.accountability.accountability_app.service;
 
+import com.accountability.accountability_app.dto.AccountabilityPartnerDTO;
+import com.accountability.accountability_app.dto.GoalDTO;
+import com.accountability.accountability_app.dto.PartnerDTO;
 import com.accountability.accountability_app.model.AccountabilityPartner;
 import com.accountability.accountability_app.model.Goal;
 import com.accountability.accountability_app.model.User;
@@ -11,6 +14,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class AccountabilityPartnerService {
@@ -20,35 +24,6 @@ public class AccountabilityPartnerService {
 
     @Autowired
     private UserRepository userRepository;
-
-//    public String sendRequest(Long senderId, Long receiverId) {
-//        Optional<User> senderOpt = userRepository.findById(senderId);
-//        Optional<User> receiverOpt = userRepository.findById(receiverId);
-//
-//        if (senderOpt.isEmpty() || receiverOpt.isEmpty()) {
-//            return "User not found.";
-//        }
-//
-//        User sender = senderOpt.get();
-//        User receiver = receiverOpt.get();
-//
-//        List<AccountabilityPartner> existingRequests = accountabilityPartnerRepository.findByUserAndPartner(sender, receiver);
-//        for (AccountabilityPartner request : existingRequests) {
-//            if (request.getStatus() == AccountabilityPartner.Status.PENDING) {
-//                return "Request already sent and is pending.";
-//            } else if (request.getStatus() == AccountabilityPartner.Status.REVOKED) {
-//
-//            }
-//        }
-//
-//        AccountabilityPartner newRequest = new AccountabilityPartner();
-//        newRequest.setUser(sender);
-//        newRequest.setPartner(receiver);
-//        newRequest.setStatus(AccountabilityPartner.Status.PENDING);
-//        accountabilityPartnerRepository.save(newRequest);
-//
-//        return "Request sent successfully.";
-//    }
 
     public String sendRequest(Long senderId, Long receiverId) {
         System.out.println("Sending request from " + senderId + " to " + receiverId);
@@ -60,38 +35,27 @@ public class AccountabilityPartnerService {
         }
 
         User sender = senderOpt.get();
-        System.out.println("Sender Name : " + sender.getName());
         User receiver = receiverOpt.get();
-        System.out.println("Receiver Name : " + receiver.getName());
 
         // Check if a partnership already exists
         List<AccountabilityPartner> existingPartnership = accountabilityPartnerRepository.findByUserAndPartner(sender, receiver);
-        List<AccountabilityPartner> existingPartnershipReverse = accountabilityPartnerRepository.findByUserAndPartner(receiver, sender);
+//        List<AccountabilityPartner> existingPartnershipReverse = accountabilityPartnerRepository.findByUserAndPartner(receiver, sender);
 
-
-        for (AccountabilityPartner partnership : existingPartnership){
-            System.out.println("Direct Partnership");
+        for (AccountabilityPartner partnership : existingPartnership) {
             if (partnership.getStatus() == AccountabilityPartner.Status.REVOKED) {
-                System.out.println("Partnership status is REVOKED, So, Updating it to PENDING.");
                 return updatePartnershipStatus(partnership, AccountabilityPartner.Status.PENDING);
             }
             return checkPartnershipStatus(partnership);
         }
 
-        for (AccountabilityPartner partnership : existingPartnershipReverse){
-            System.out.println("Reverse Partnership");
-            if (partnership.getStatus() == AccountabilityPartner.Status.REVOKED) {
-                System.out.println("Partnership status is REVOKED, So, Updating it to PENDING.");
-                return updatePartnershipStatus(partnership, AccountabilityPartner.Status.PENDING);
-            }
-            return checkPartnershipStatus(partnership);
-        }
-
-        // Create a new accountability partner request
-        System.out.println("Creating new request");
+//        for (AccountabilityPartner partnership : existingPartnershipReverse) {
+//            if (partnership.getStatus() == AccountabilityPartner.Status.REVOKED) {
+//                return updatePartnershipStatus(partnership, AccountabilityPartner.Status.PENDING);
+//            }
+//            return checkPartnershipStatus(partnership);
+//        }
 
         return createNewPartnership(sender, receiver);
-
     }
 
     private String createNewPartnership(User sender, User receiver) {
@@ -103,18 +67,13 @@ public class AccountabilityPartnerService {
         return "Request sent successfully.";
     }
 
-    // Helper method to check the partnership status
     private String checkPartnershipStatus(AccountabilityPartner partnership) {
-        switch (partnership.getStatus()) {
-            case PENDING:
-                return "Request already sent, but not yet responded.";
-            case ACCEPTED:
-                return "You are already partners.";
-            case REJECTED:
-                return "Previous request was rejected. You can send a new request.";
-            default:
-                return "Unexpected status.";
-        }
+        return switch (partnership.getStatus()) {
+            case PENDING -> "Request already sent, but not yet responded.";
+            case ACCEPTED -> "You are already partners.";
+            case REJECTED -> "Previous request was rejected. You can send a new request.";
+            default -> "Unexpected status.";
+        };
     }
 
     private String updatePartnershipStatus(AccountabilityPartner partnership, AccountabilityPartner.Status status) {
@@ -126,57 +85,49 @@ public class AccountabilityPartnerService {
     public String respondToRequest(Long receiverId, Long senderId, boolean accept) {
         System.out.println("Responding to request from " + senderId + " to " + receiverId);
 
-        User sender = userRepository.findById(senderId).orElse(null);
-        User receiver = userRepository.findById(receiverId).orElse(null);
+        Optional<User> senderOpt = userRepository.findById(senderId);
+        Optional<User> receiverOpt = userRepository.findById(receiverId);
 
-        if (sender == null || receiver == null) {
+        if (senderOpt.isEmpty() || receiverOpt.isEmpty()) {
             return "User not found.";
         }
 
-        // Check if the receiver already has an accepted partner
-        System.out.println("First checking if the user is already a active partner...");
-        AccountabilityPartner existingPartner = accountabilityPartnerRepository.findByUserOrPartnerAndStatus(receiver, AccountabilityPartner.Status.ACCEPTED);
+        User sender = senderOpt.get();
+        User receiver = receiverOpt.get();
 
-        if (existingPartner != null && accept) {
-            System.out.println("You are already partnered with someone else. Remove your existing partner first to accept a new request.");
-            return "You are already partnered with someone else. Remove your existing partner first to accept a new request.";
-        }
-
-        // Find the accountability request in both possible directions
+        // Find pending request
         List<AccountabilityPartner> requestList = accountabilityPartnerRepository.findByUserAndPartner(sender, receiver);
-        List<AccountabilityPartner> requestReverseList = accountabilityPartnerRepository.findByUserAndPartner(receiver, sender);
+//        List<AccountabilityPartner> requestReverseList = accountabilityPartnerRepository.findByUserAndPartner(receiver, sender);
 
-        // Merge both lists
         List<AccountabilityPartner> allRequests = new ArrayList<>();
         allRequests.addAll(requestList);
-        allRequests.addAll(requestReverseList);
+//        allRequests.addAll(requestReverseList);
 
         if (allRequests.isEmpty()) {
             return "No pending request found.";
         }
 
-        // We assume there's only one valid request at a time
         AccountabilityPartner request = allRequests.get(0);
 
-        // If the request is already accepted, no need to process it again.
         if (request.getStatus() == AccountabilityPartner.Status.ACCEPTED) {
             return "You are already partners.";
         }
 
-        // If the request is already revoked, a new request needs to be sent first.
         if (request.getStatus() == AccountabilityPartner.Status.REVOKED) {
             return "Your partnership was revoked, so a new request must be sent first.";
         }
 
-        // Update the status based on the user's response
         request.setStatus(accept ? AccountabilityPartner.Status.ACCEPTED : AccountabilityPartner.Status.REJECTED);
         accountabilityPartnerRepository.save(request);
 
         return accept ? "Request accepted. You are now partners." : "Request rejected.";
     }
 
-    public String removePartner(Long userId) {
-        List<AccountabilityPartner> partnerships = accountabilityPartnerRepository.findByUserIdOrPartnerId(userId, userId);
+    public String removePartner(Long userId, Long partnerId) {
+        List<AccountabilityPartner> partnerships = accountabilityPartnerRepository.findByUserAndPartner(
+                userRepository.findById(userId).orElse(null),
+                userRepository.findById(partnerId).orElse(null)
+        );
 
         if (partnerships.isEmpty()) {
             return "No accountability partner found.";
@@ -185,7 +136,6 @@ public class AccountabilityPartnerService {
         for (AccountabilityPartner partnership : partnerships) {
             if (partnership.getStatus() == AccountabilityPartner.Status.ACCEPTED) {
                 partnership.setStatus(AccountabilityPartner.Status.REVOKED);
-                System.out.println("Status set to REVOKED");
                 accountabilityPartnerRepository.save(partnership);
             }
         }
@@ -193,33 +143,51 @@ public class AccountabilityPartnerService {
         return "Accountability partnership revoked successfully.";
     }
 
-    public List<AccountabilityPartner> getPendingRequests(Long userId) {
-        return accountabilityPartnerRepository.findByPartnerIdAndStatus(userId, AccountabilityPartner.Status.PENDING);
+    public List<AccountabilityPartnerDTO> getPendingRequests(Long userId) {
+        List<AccountabilityPartner> pendingRequests =
+                accountabilityPartnerRepository.findByPartnerIdAndStatus(userId, AccountabilityPartner.Status.PENDING);
+
+        return pendingRequests.stream()
+                .map(partner -> new AccountabilityPartnerDTO(
+                        partner.getId(),
+                        partner.getUser().getId(), partner.getUser().getName(), partner.getUser().getEmail(),
+                        partner.getPartner().getId(), partner.getPartner().getName(), partner.getPartner().getEmail()
+                ))
+                .collect(Collectors.toList());
     }
 
-    public AccountabilityPartner getAccountabilityPartner(Long userId) {
-        System.out.println("Fetching accountability partner for userId: " + userId);
+    public List<PartnerDTO> getAccountabilityPartners(Long userId) {
+        System.out.println("Fetching all accountability partners for userId: " + userId);
+        User user = userRepository.findById(userId).orElse(null);
 
-        // Fetch all partnerships where the user is either 'user' or 'partner'
-        List<AccountabilityPartner> partnerships = accountabilityPartnerRepository.findByUserIdOrPartnerId(userId, userId);
+        // when i am using this, i want to know,
+        /*
+        those users, whom i sent request, and they accepted it.
+        meaning , in the accountability table,
+        my userid is userid, and whoever's partnerid is there, they are my partners.
+         */
+        if (user == null) return new ArrayList<>();
+        List<User> partners = accountabilityPartnerRepository.findAllAcceptedPartners(userId);
 
-        if (partnerships.isEmpty()) {
-            return null; // No partner found
-        }
 
-        // ✅ Return the first accepted partnership, if any
-        for (AccountabilityPartner partner : partnerships) {
-            if (partner.getStatus() == AccountabilityPartner.Status.ACCEPTED) {
-                return partner; // Return the first active partner
-            }
-        }
+        return partners.stream().map(this::convertToPartnerDTO).collect(Collectors.toList());
+    }
 
-        return null; // If no active partner exists
+    private PartnerDTO convertToPartnerDTO(User user) {
+        List<GoalDTO> goalDTOs = user.getGoals().stream()
+                .map(goal -> new GoalDTO(goal.getId(), goal.getTitle(), goal.getDescription(),
+                        goal.getDeadline().toString(), goal.isCompleted(), goal.getProgress()))
+                .collect(Collectors.toList());
+
+        return new PartnerDTO(user.getId(), user.getName(), user.getEmail(), goalDTOs);
     }
 
     public List<Goal> getPartnerGoals(Long userId) {
-        System.out.println("Inside service...getPartnerGoals , userId: " + userId);
-        return accountabilityPartnerRepository.findPartnerGoals(userId);
-    }
+        System.out.println("Fetching goals of all partners for userId: " + userId);
+        User user = userRepository.findById(userId).orElse(null);
 
+        if (user == null) return new ArrayList<>();
+
+        return accountabilityPartnerRepository.findGoalsOfAcceptedPartners(user);
+    }
 }

@@ -13,10 +13,33 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class User {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(unique = true, nullable = false)
+    private String email;
+
+    @Column(nullable = false)
+    private String password;
+
+    @Column(nullable = false)
+    private String name;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private List<Goal> goals;
+
+    // Users this user has sent requests to
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private List<AccountabilityPartner> accountabilityPartners;
+
+    // Users who have sent requests to this user
+    @OneToMany(mappedBy = "partner", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private List<AccountabilityPartner> partnersWithMe;
 
     public Long getId() {
         return id;
@@ -58,29 +81,19 @@ public class User {
         this.goals = goals;
     }
 
-    public AccountabilityPartner getAccountabilityPartner() {
-        return accountabilityPartner;
+    public List<AccountabilityPartner> getAccountabilityPartners() {
+        return accountabilityPartners;
     }
 
-    public void setAccountabilityPartner(AccountabilityPartner accountabilityPartner) {
-        this.accountabilityPartner = accountabilityPartner;
+    public void setAccountabilityPartners(List<AccountabilityPartner> accountabilityPartners) {
+        this.accountabilityPartners = accountabilityPartners;
     }
 
-    @Column(unique = true, nullable = false)
-    private String email;
-    
-    @Column(nullable = false)
-    private String password;
+    public List<AccountabilityPartner> getPartnersWithMe() {
+        return partnersWithMe;
+    }
 
-    @Column(nullable = false)
-    private String name;
-
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference // Prevents infinite recursion
-    private List<Goal> goals;
-
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JsonManagedReference
-    private AccountabilityPartner accountabilityPartner;
-
+    public void setPartnersWithMe(List<AccountabilityPartner> partnersWithMe) {
+        this.partnersWithMe = partnersWithMe;
+    }
 }

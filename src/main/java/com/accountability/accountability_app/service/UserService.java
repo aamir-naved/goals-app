@@ -1,4 +1,5 @@
 package com.accountability.accountability_app.service;
+import com.accountability.accountability_app.dto.UserDTO;
 import com.accountability.accountability_app.model.User;
 import com.accountability.accountability_app.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,6 +9,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -54,7 +56,10 @@ public class UserService {
         }
     }
 
-    public List<User> getAllUsersExcept(Long userId) {
-        return userRepository.findByIdNot(userId);
+    public List<UserDTO> getAllUsersExcept(Long userId) {
+        List<User> users = userRepository.findByIdNot(userId);
+        return users.stream()
+                .map(user -> new UserDTO(user.getId(), user.getName(), user.getEmail()))
+                .collect(Collectors.toList());
     }
 }

@@ -1,6 +1,5 @@
 package com.accountability.accountability_app.model;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
@@ -10,34 +9,13 @@ import lombok.*;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "accountability_partners")
+@Table(name = "accountability_partners",
+        uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "partner_id"})) // Prevent duplicates
 public class AccountabilityPartner {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-//    @ManyToOne
-//    @JoinColumn(name = "user_id", nullable = false)
-//    @JsonBackReference
-//    private User user;
-//
-//    @ManyToOne
-//    @JoinColumn(name = "partner_id", nullable = false)
-//    private User partner;
-
-    @ManyToOne
-    @JoinColumn(name = "user_id")
-    @JsonIgnoreProperties({"accountabilityPartner"}) // Prevent infinite recursion
-    private User user;
-
-    @ManyToOne
-    @JoinColumn(name = "partner_id")
-    @JsonIgnoreProperties({"accountabilityPartner"}) // Prevent infinite recursion
-    private User partner;
-
-    @Enumerated(EnumType.STRING)
-    private Status status = Status.PENDING; // Default status is PENDING
 
     public Long getId() {
         return id;
@@ -71,6 +49,19 @@ public class AccountabilityPartner {
         this.status = status;
     }
 
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    @JsonIgnoreProperties({"accountabilityPartners", "partnersWithMe"})
+    private User user;
+
+    @ManyToOne
+    @JoinColumn(name = "partner_id", nullable = false)
+    @JsonIgnoreProperties({"accountabilityPartners", "partnersWithMe"})
+    private User partner;
+
+    @Enumerated(EnumType.STRING)
+    private Status status = Status.PENDING;
+
     public enum Status {
         PENDING,
         ACCEPTED,
@@ -78,7 +69,6 @@ public class AccountabilityPartner {
         REVOKED
     }
 
-    // Add a helper method to check if a user is in this accountability relationship
     public boolean involvesUser(User targetUser) {
         return user.getId().equals(targetUser.getId()) || partner.getId().equals(targetUser.getId());
     }

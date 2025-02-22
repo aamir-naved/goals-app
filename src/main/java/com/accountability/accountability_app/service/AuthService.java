@@ -1,5 +1,6 @@
 package com.accountability.accountability_app.service;
 
+import com.accountability.accountability_app.dto.UserDTO;
 import com.accountability.accountability_app.exception.UserAlreadyExistsException;
 import com.accountability.accountability_app.model.User;
 import com.accountability.accountability_app.repository.UserRepository;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class AuthService {
@@ -53,17 +55,19 @@ public class AuthService {
     public ResponseEntity<Map<String, Object>> loginUser(String email, String password) {
         Optional<User> userOpt = userRepository.findByEmail(email);
 
+
         if (userOpt.isEmpty() || !passwordEncoder.matches(password, userOpt.get().getPassword())) {
             throw new RuntimeException("Invalid credentials");
         }
 
-        User user = userOpt.get();
+        UserDTO userDTO = new UserDTO(userOpt.get().getId(),userOpt.get().getName(),userOpt.get().getEmail());
+
         String token = jwtUtil.generateToken(email);
 
         // Creating a response object with token and user details
         Map<String, Object> response = new HashMap<>();
         response.put("token", token);
-        response.put("user", user);
+        response.put("user", userDTO);
 
         return ResponseEntity.ok(response);
     }
