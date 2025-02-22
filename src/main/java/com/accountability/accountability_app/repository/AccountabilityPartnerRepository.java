@@ -1,6 +1,7 @@
 package com.accountability.accountability_app.repository;
 
 import com.accountability.accountability_app.model.AccountabilityPartner;
+import com.accountability.accountability_app.model.Goal;
 import com.accountability.accountability_app.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -21,6 +22,11 @@ public interface AccountabilityPartnerRepository extends JpaRepository<Accountab
 //    List<AccountabilityPartner> findByPartnerIdAndStatus(Long partnerId, AccountabilityPartner.Status status);
 
     List<AccountabilityPartner> findByUserIdOrPartnerId(Long userId, Long partnerId);
+
+    @Query("SELECT g FROM Goal g WHERE g.user.id = " +
+            "(SELECT ap.partner.id FROM AccountabilityPartner ap " +
+            "WHERE ap.user.id = :userId AND ap.status = 'ACCEPTED')")
+    List<Goal> findPartnerGoals(@Param("userId") Long userId);
 
 
     List<AccountabilityPartner> findByPartnerIdAndStatus(Long partnerId, AccountabilityPartner.Status status);

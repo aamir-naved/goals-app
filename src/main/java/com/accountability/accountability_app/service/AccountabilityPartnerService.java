@@ -1,6 +1,7 @@
 package com.accountability.accountability_app.service;
 
 import com.accountability.accountability_app.model.AccountabilityPartner;
+import com.accountability.accountability_app.model.Goal;
 import com.accountability.accountability_app.model.User;
 import com.accountability.accountability_app.repository.AccountabilityPartnerRepository;
 import com.accountability.accountability_app.repository.UserRepository;
@@ -69,6 +70,7 @@ public class AccountabilityPartnerService {
 
 
         for (AccountabilityPartner partnership : existingPartnership){
+            System.out.println("Direct Partnership");
             if (partnership.getStatus() == AccountabilityPartner.Status.REVOKED) {
                 System.out.println("Partnership status is REVOKED, So, Updating it to PENDING.");
                 return updatePartnershipStatus(partnership, AccountabilityPartner.Status.PENDING);
@@ -77,6 +79,7 @@ public class AccountabilityPartnerService {
         }
 
         for (AccountabilityPartner partnership : existingPartnershipReverse){
+            System.out.println("Reverse Partnership");
             if (partnership.getStatus() == AccountabilityPartner.Status.REVOKED) {
                 System.out.println("Partnership status is REVOKED, So, Updating it to PENDING.");
                 return updatePartnershipStatus(partnership, AccountabilityPartner.Status.PENDING);
@@ -182,6 +185,7 @@ public class AccountabilityPartnerService {
         for (AccountabilityPartner partnership : partnerships) {
             if (partnership.getStatus() == AccountabilityPartner.Status.ACCEPTED) {
                 partnership.setStatus(AccountabilityPartner.Status.REVOKED);
+                System.out.println("Status set to REVOKED");
                 accountabilityPartnerRepository.save(partnership);
             }
         }
@@ -211,6 +215,11 @@ public class AccountabilityPartnerService {
         }
 
         return null; // If no active partner exists
+    }
+
+    public List<Goal> getPartnerGoals(Long userId) {
+        System.out.println("Inside service...getPartnerGoals , userId: " + userId);
+        return accountabilityPartnerRepository.findPartnerGoals(userId);
     }
 
 }

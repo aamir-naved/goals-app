@@ -1,6 +1,7 @@
 package com.accountability.accountability_app.controller;
 
 import com.accountability.accountability_app.model.AccountabilityPartner;
+import com.accountability.accountability_app.model.Goal;
 import com.accountability.accountability_app.model.User;
 import com.accountability.accountability_app.service.AccountabilityPartnerService;
 import com.accountability.accountability_app.service.UserService;
@@ -70,5 +71,12 @@ public class AccountabilityPartnerController {
     public ResponseEntity<List<AccountabilityPartner>> getPendingRequests(@RequestParam Long userId) {
         List<AccountabilityPartner> pendingRequests = accountabilityPartnerService.getPendingRequests(userId);
         return ResponseEntity.ok(pendingRequests);
+    }
+
+    @GetMapping("/partnerGoals")
+    public ResponseEntity<List<Goal>> getPartnerGoals(@RequestParam Long userId) {
+        System.out.println("Recieved call in getPartnerGoals");
+        List<Goal> partnerGoals = accountabilityPartnerService.getPartnerGoals(userId);
+        return ResponseEntity.ok(partnerGoals);
     }
 }
