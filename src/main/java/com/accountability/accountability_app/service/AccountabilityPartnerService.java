@@ -130,7 +130,10 @@ public class AccountabilityPartnerService {
         }
 
         if (request.getStatus() == AccountabilityPartner.Status.REVOKED) {
-            return "Your partnership was revoked, so a new request must be sent first.";
+            request.setStatus(accept ? AccountabilityPartner.Status.PENDING : AccountabilityPartner.Status.REJECTED);
+            String msg = accept ? " A new request has been sent!" : " Request rejected again!";
+            accountabilityPartnerRepository.save(request);
+            return "Your partnership was revoked earlier." + msg;
         }
 
         request.setStatus(accept ? AccountabilityPartner.Status.ACCEPTED : AccountabilityPartner.Status.REJECTED);
