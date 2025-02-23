@@ -6,10 +6,12 @@ import com.accountability.accountability_app.model.User;
 import com.accountability.accountability_app.repository.UserRepository;
 import com.accountability.accountability_app.security.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -57,7 +59,7 @@ public class AuthService {
 
 
         if (userOpt.isEmpty() || !passwordEncoder.matches(password, userOpt.get().getPassword())) {
-            throw new RuntimeException("Invalid credentials");
+            return buildErrorResponse("Invalid credentials", HttpStatus.UNAUTHORIZED);
         }
 
         UserDTO userDTO = new UserDTO(userOpt.get().getId(),userOpt.get().getName(),userOpt.get().getEmail());
@@ -70,6 +72,16 @@ public class AuthService {
         response.put("user", userDTO);
 
         return ResponseEntity.ok(response);
+    }
+
+    // Helper method to build a structured JSON response
+    private ResponseEntity<Map<String, Object>> buildErrorResponse(String message, HttpStatus status) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("timestamp", LocalDateTime.now());
+        body.put("message", message);
+        body.put("status", status.value());
+
+        return new ResponseEntity<>(body, status);
     }
 
 }
