@@ -58,7 +58,7 @@ public class AccountabilityPartnerService {
 //        List<AccountabilityPartner> existingPartnershipReverse = accountabilityPartnerRepository.findByUserAndPartner(receiver, sender);
 
         for (AccountabilityPartner partnership : existingPartnership) {
-            if (partnership.getStatus() == AccountabilityPartner.Status.REVOKED) {
+            if (partnership.getStatus() == AccountabilityPartner.Status.REVOKED || partnership.getStatus() == AccountabilityPartner.Status.REJECTED) {
                 return updatePartnershipStatus(partnership, AccountabilityPartner.Status.PENDING);
             }
             return checkPartnershipStatus(partnership);
