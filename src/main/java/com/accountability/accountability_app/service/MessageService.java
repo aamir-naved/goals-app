@@ -22,6 +22,7 @@ public class MessageService {
 
     // Save and notify recipient
     public Message sendMessage(Long senderId, Long receiverId, String content) {
+        System.out.println("Sending message from " + senderId + " to " + receiverId);
         Message message = new Message(senderId, receiverId, content);
         message = messageRepository.save(message);
 
@@ -29,8 +30,10 @@ public class MessageService {
         SseEmitter emitter = emitters.get(receiverId);
         if (emitter != null) {
             try {
+                System.out.println("Notifying receiver " + receiverId);
                 emitter.send(SseEmitter.event().data(message));
             } catch (IOException e) {
+                System.out.println("Error sending SSE notification to " + receiverId);
                 emitters.remove(receiverId);
             }
         }
@@ -39,6 +42,7 @@ public class MessageService {
 
     // Get chat history
     public List<Message> getChatHistory(Long user1Id, Long user2Id) {
+        System.out.println("Fetching chat history between " + user1Id + " and " + user2Id);
         return messageRepository.findBySenderIdAndReceiverIdOrReceiverIdAndSenderIdOrderByTimestamp(
                 user1Id, user2Id, user2Id, user1Id
         );
@@ -46,10 +50,17 @@ public class MessageService {
 
     // Start SSE connection
     public SseEmitter connect(Long userId) {
+        System.out.println("Establishing SSE connection for user " + userId);
         SseEmitter emitter = new SseEmitter(Long.MAX_VALUE);
         emitters.put(userId, emitter);
-        emitter.onCompletion(() -> emitters.remove(userId));
-        emitter.onTimeout(() -> emitters.remove(userId));
+        emitter.onCompletion(() -> {
+            System.out.println("SSE connection completed for user " + userId);
+            emitters.remove(userId);
+        });
+        emitter.onTimeout(() -> {
+            System.out.println("SSE connection timed out for user " + userId);
+            emitters.remove(userId);
+        });
         return emitter;
     }
 }

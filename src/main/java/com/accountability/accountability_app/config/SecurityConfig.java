@@ -35,6 +35,7 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        System.out.println("Configuring SecurityFilterChain...");
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable) // Disable CSRF for stateless API
@@ -45,22 +46,25 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
-
+        System.out.println("SecurityFilterChain configured successfully.");
         return http.build();
     }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
+        System.out.println("Initializing PasswordEncoder...");
         return new BCryptPasswordEncoder(); // Secure password hashing
     }
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
+        System.out.println("Initializing AuthenticationManager...");
         return authConfig.getAuthenticationManager();
     }
 
     @Bean
     public AuthenticationProvider authenticationProvider() {
+        System.out.println("Initializing AuthenticationProvider...");
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
         provider.setUserDetailsService(userDetailsService);
         provider.setPasswordEncoder(passwordEncoder());
@@ -69,6 +73,7 @@ public class SecurityConfig {
 
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
+        System.out.println("Configuring CORS...");
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of(
                 "http://localhost:5174",
@@ -78,6 +83,7 @@ public class SecurityConfig {
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true); // REQUIRED for auth cookies/tokens
+        System.out.println("CORS configured successfully.");
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
