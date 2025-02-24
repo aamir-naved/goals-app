@@ -45,28 +45,28 @@ public class MessageService {
         );
     }
 
-    public SseEmitter connect(Long userId) {
-        System.out.println("Establishing SSE connection for user " + userId);
-        SseEmitter emitter = new SseEmitter(Long.MAX_VALUE);
-        emitters.put(userId, emitter);
-
-        emitter.onCompletion(() -> {
-            System.out.println("SSE connection completed for user " + userId);
-            emitters.remove(userId);
-        });
-
-        emitter.onTimeout(() -> {
-            System.out.println("SSE connection timed out for user " + userId);
-            emitter.complete();
-            emitters.remove(userId);
-        });
-
-        emitter.onError((ex) -> {
-            System.out.println("SSE connection error for user " + userId + ": " + ex.getMessage());
-            emitter.complete();
-            emitters.remove(userId);
-        });
-
-        return emitter;
-    }
+//    public SseEmitter connect(Long userId) {
+//        System.out.println("Establishing SSE connection for user " + userId);
+//        SseEmitter emitter = new SseEmitter(Long.MAX_VALUE);
+//        emitters.put(userId, emitter);
+//
+//        emitter.onCompletion(() -> {
+//            System.out.println("SSE connection completed for user " + userId);
+//            emitters.remove(userId);
+//        });
+//
+//        emitter.onTimeout(() -> {
+//            System.out.println("SSE connection timed out for user " + userId);
+//            emitter.complete();
+//            emitters.remove(userId);
+//        });
+//
+//        emitter.onError((ex) -> {
+//            System.out.println("SSE connection error for user " + userId + ": " + ex.getMessage());
+//            emitter.complete();
+//            emitters.remove(userId);
+//        });
+//
+//        return emitter;
+//    }
 }
