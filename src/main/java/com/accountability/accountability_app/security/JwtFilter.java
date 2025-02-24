@@ -35,9 +35,13 @@ public class JwtFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
 
+        String requestPath = request.getRequestURI();
+        System.out.println("🌍 Incoming request: " + requestPath);
+
         final String authHeader = request.getHeader("Authorization");
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            System.out.println("⚠️ No Authorization header or invalid format. Proceeding without authentication.");
             chain.doFilter(request, response);
             return;
         }
@@ -47,13 +51,17 @@ public class JwtFilter extends OncePerRequestFilter {
 
         try {
             email = jwtUtil.extractEmail(jwt);
+            System.out.println("📧 Extracted email from JWT: " + email);
         } catch (ExpiredJwtException e) {
+            System.out.println("❌ JWT Token expired: " + e.getMessage());
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "JWT Token has expired");
             return;
         } catch (SignatureException | MalformedJwtException e) {
+            System.out.println("❌ Invalid JWT Token: " + e.getMessage());
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid JWT Token");
             return;
         } catch (IllegalArgumentException e) {
+            System.out.println("❌ JWT claims string is empty: " + e.getMessage());
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "JWT claims string is empty");
             return;
         }
@@ -62,11 +70,15 @@ public class JwtFilter extends OncePerRequestFilter {
             UserDetails userDetails = userDetailsService.loadUserByUsername(email);
 
             if (jwtUtil.validateToken(jwt, email)) {
+                System.out.println("✅ JWT is valid. Authenticating user: " + email);
+
                 UsernamePasswordAuthenticationToken authToken =
                         new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
                 SecurityContextHolder.getContext().setAuthentication(authToken);
+            } else {
+                System.out.println("❌ JWT validation failed for email: " + email);
             }
         }
 
@@ -76,6 +88,12 @@ public class JwtFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI();
-        return path.startsWith("/auth/register") || path.startsWith("/auth/login");
+        boolean shouldSkip = path.startsWith("/auth/register") || path.startsWith("/auth/login");
+
+        if (shouldSkip) {
+            System.out.println("⏩ Skipping JWT filter for path: " + path);
+        }
+
+        return shouldSkip;
     }
 }

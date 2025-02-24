@@ -1,4 +1,5 @@
 package com.accountability.accountability_app.config;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
@@ -12,6 +13,8 @@ public class CorsConfig {
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
+                System.out.println("🔧 Configuring CORS..."); // Logging
+
                 registry.addMapping("/**")
                         .allowedOrigins(
                                 "http://localhost:5174", // Local frontend
@@ -20,7 +23,9 @@ public class CorsConfig {
                         )
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowedHeaders("*")
-                        .allowCredentials(true); // REQUIRED when sending cookies or auth headers
+                        .allowCredentials(true); // Required for authentication headers
+
+                System.out.println("✅ CORS Configuration Applied Successfully!");
             }
         };
     }
