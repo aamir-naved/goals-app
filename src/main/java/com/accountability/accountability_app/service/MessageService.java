@@ -40,9 +40,7 @@ public class MessageService {
 
     public List<Message> getChatHistory(Long user1Id, Long user2Id) {
         System.out.println("Fetching chat history between " + user1Id + " and " + user2Id);
-        return messageRepository.findBySenderIdAndReceiverIdOrReceiverIdAndSenderIdOrderByTimestamp(
-                user1Id, user2Id, user2Id, user1Id
-        );
+        return messageRepository.findChatHistory(user1Id,user2Id);
     }
 
 //    public SseEmitter connect(Long userId) {
