@@ -1,4 +1,5 @@
 package com.accountability.accountability_app.service;
+
 import com.accountability.accountability_app.dto.UserDTO;
 import com.accountability.accountability_app.model.User;
 import com.accountability.accountability_app.repository.UserRepository;
@@ -9,6 +10,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -17,48 +19,44 @@ public class UserService {
     @Autowired
     private UserRepository userRepository;
 
-    // Method to retrieve the currently logged-in user
+    // Retrieve the currently logged-in user
     public User getLoggedInUser() {
         Long loggedInUserId = getLoggedInUserIdFromSessionOrToken();
         return userRepository.findById(loggedInUserId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
     }
 
-    // Retrieve the logged-in user's ID directly from the SecurityContext (Authentication object)
+    // Retrieve logged-in user's ID from SecurityContext
     private Long getLoggedInUserIdFromSessionOrToken() {
-        // Retrieve the authentication object from Spring Security's SecurityContext
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        if (authentication == null) {
-            throw new RuntimeException("Authentication context is not available.");
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new RuntimeException("User is not authenticated.");
         }
 
-        // Get the principal object, which is usually the logged-in user's details (could be a username, userId, etc.)
         Object principal = authentication.getPrincipal();
 
-        // Check if the principal is a String (username, email, etc.)
-        if (principal instanceof String) {
-            // If the principal is a String (like username or email), query the user by it
-            String email = (String) principal;
-            return userRepository.findByEmail(email)
-                    .map(User::getId)
-                    .orElseThrow(() -> new RuntimeException("User not found"));
-        }
-        // If it's a different type (e.g., custom UserDetails), you can inspect and handle accordingly
-        else if (principal instanceof UserDetails) {
-            // If it's a UserDetails object, extract the user ID (depending on your setup)
-            UserDetails userDetails = (UserDetails) principal;
-            return userRepository.findByEmail(userDetails.getUsername()) // Assuming username is the email
-                    .map(User::getId)
-                    .orElseThrow(() -> new RuntimeException("User not found"));
+        if (principal instanceof String email) {
+            return getUserIdByEmail(email);
+        } else if (principal instanceof UserDetails userDetails) {
+            return getUserIdByEmail(userDetails.getUsername()); // Assuming username is email
         } else {
-            throw new RuntimeException("Unexpected principal type: " + principal.getClass().getName());
+            throw new RuntimeException("Unexpected principal type: " + (principal != null ? principal.getClass().getName() : "null"));
         }
     }
 
+    // Helper method to get user ID by email
+    private Long getUserIdByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .map(User::getId)
+                .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
+    }
+
+    // Retrieve all users except the logged-in user
     public List<UserDTO> getAllUsersExcept(Long userId) {
-        List<User> users = userRepository.findByIdNot(userId);
-        return users.stream()
+        return Optional.ofNullable(userRepository.findByIdNot(userId))
+                .orElse(List.of()) // Return empty list if null
+                .stream()
                 .map(user -> new UserDTO(user.getId(), user.getName(), user.getEmail()))
                 .collect(Collectors.toList());
     }

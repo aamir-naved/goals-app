@@ -79,7 +79,12 @@ public class AccountabilityPartnerService {
         request.setUser(masterUser);
         request.setPartner(slaveUser);
         request.setStatus(AccountabilityPartner.Status.PENDING);
-        accountabilityPartnerRepository.save(request);
+        try{
+            accountabilityPartnerRepository.save(request);
+        }catch (Exception e){
+            return "Excetpion: " + e;
+        }
+
         return "Request sent successfully.";
     }
 
@@ -94,7 +99,13 @@ public class AccountabilityPartnerService {
 
     private String updatePartnershipStatus(AccountabilityPartner partnership, AccountabilityPartner.Status status) {
         partnership.setStatus(status);
-        accountabilityPartnerRepository.save(partnership);
+        try
+        {
+            accountabilityPartnerRepository.save(partnership);
+        }
+        catch (Exception e){
+            return "Excetpion: " + e;
+        }
         return status == AccountabilityPartner.Status.PENDING ? "Request Sent. Your partnership is in Pending." : "Unknown status while processing REVOKED one.";
     }
 
@@ -132,12 +143,20 @@ public class AccountabilityPartnerService {
         if (request.getStatus() == AccountabilityPartner.Status.REVOKED) {
             request.setStatus(accept ? AccountabilityPartner.Status.PENDING : AccountabilityPartner.Status.REJECTED);
             String msg = accept ? " A new request has been sent!" : " Request rejected again!";
-            accountabilityPartnerRepository.save(request);
+            try{
+                accountabilityPartnerRepository.save(request);
+            }catch (Exception e){
+                return "Exception : " + e;
+            }
             return "Your partnership was revoked earlier." + msg;
         }
 
         request.setStatus(accept ? AccountabilityPartner.Status.ACCEPTED : AccountabilityPartner.Status.REJECTED);
-        accountabilityPartnerRepository.save(request);
+        try{
+            accountabilityPartnerRepository.save(request);
+        }catch (Exception e){
+            return "Exception : " + e;
+        }
 
         return accept ? "Request accepted. You are now partners." : "Request rejected.";
     }
@@ -155,7 +174,11 @@ public class AccountabilityPartnerService {
         for (AccountabilityPartner partnership : partnerships) {
             if (partnership.getStatus() == AccountabilityPartner.Status.ACCEPTED) {
                 partnership.setStatus(AccountabilityPartner.Status.REVOKED);
-                accountabilityPartnerRepository.save(partnership);
+                try{
+                    accountabilityPartnerRepository.save(partnership);
+                }catch (Exception e){
+                    return "Exception : " + e;
+                }
             }
         }
 
