@@ -48,16 +48,51 @@ public class MessageController {
     }
 
     // **Start SSE Connection**
+//    @GetMapping("/stream/{userId}")
+//    public SseEmitter streamMessages(@PathVariable Long userId, @RequestParam("token") String token) {
+//        System.out.println("🔄 Starting SSE connection for user ID: " + userId);
+//
+//        String email;
+//        try {
+//            email = jwtUtil.extractEmail(token);
+//            System.out.println("📧 Extracted email from token: " + email);
+//        } catch (Exception e) {
+//            System.out.println("❌ Failed to extract email from token: " + e.getMessage());
+//            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Invalid Token");
+//        }
+//
+//        if (!jwtUtil.validateToken(token, email)) {
+//            System.out.println("❌ Token validation failed for email: " + email);
+//            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Invalid Token");
+//        }
+//
+//        User user = userRepository.findByEmail(email)
+//                .orElseThrow(() -> {
+//                    System.out.println("❌ No user found for email: " + email);
+//                    return new ResponseStatusException(HttpStatus.FORBIDDEN, "User not found");
+//                });
+//
+//        if (!user.getId().equals(userId)) {
+//            System.out.println("❌ User ID mismatch! Token belongs to " + user.getId() + " but request is for " + userId);
+//            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "User ID does not match token");
+//        }
+//
+//        System.out.println("✅ SSE connection established for user ID: " + userId);
+//        return messageService.connect(userId);
+//    }
+//}
+
     @GetMapping("/stream/{userId}")
     public SseEmitter streamMessages(@PathVariable Long userId, @RequestParam("token") String token) {
         System.out.println("🔄 Starting SSE connection for user ID: " + userId);
 
+        // Validate Token
         String email;
         try {
             email = jwtUtil.extractEmail(token);
             System.out.println("📧 Extracted email from token: " + email);
         } catch (Exception e) {
-            System.out.println("❌ Failed to extract email from token: " + e.getMessage());
+            System.out.println("❌ Token extraction failed: " + e.getMessage());
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Invalid Token");
         }
 
@@ -73,7 +108,7 @@ public class MessageController {
                 });
 
         if (!user.getId().equals(userId)) {
-            System.out.println("❌ User ID mismatch! Token belongs to " + user.getId() + " but request is for " + userId);
+            System.out.println("❌ Token mismatch! Token belongs to user " + user.getId() + " but request is for " + userId);
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "User ID does not match token");
         }
 
@@ -82,7 +117,8 @@ public class MessageController {
     }
 }
 
-// DTO for message requests
+
+    // DTO for message requests
 class MessageRequest {
     private Long senderId;
     private Long receiverId;
