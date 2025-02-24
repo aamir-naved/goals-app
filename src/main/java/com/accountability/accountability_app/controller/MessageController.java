@@ -1,9 +1,15 @@
 package com.accountability.accountability_app.controller;
 
 import com.accountability.accountability_app.model.Message;
+import com.accountability.accountability_app.model.User;
+import com.accountability.accountability_app.repository.UserRepository;
+import com.accountability.accountability_app.security.JwtUtil;
 import com.accountability.accountability_app.service.MessageService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.List;
@@ -12,6 +18,12 @@ import java.util.List;
 @RequestMapping("/api/messages")
 public class MessageController {
     private final MessageService messageService;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private JwtUtil jwtUtil;
 
     public MessageController(MessageService messageService) {
         this.messageService = messageService;
@@ -32,10 +44,27 @@ public class MessageController {
     }
 
     // **Start SSE Connection**
+//    @GetMapping("/stream/{userId}")
+//    public SseEmitter streamMessages(@PathVariable Long userId) {
+//        return messageService.connect(userId);
+//    }
     @GetMapping("/stream/{userId}")
-    public SseEmitter streamMessages(@PathVariable Long userId) {
+    public SseEmitter streamMessages(@PathVariable Long userId, @RequestParam("token") String token) {
+        String email = jwtUtil.extractEmail(token);
+        if (!jwtUtil.validateToken(token,email)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Invalid Token");
+        }
+
+//        String email = jwtUtil.extractEmail(token);
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN));
+
+        if (!user.getId().equals(userId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "User ID does not match token");
+        }
+
         return messageService.connect(userId);
     }
+
 }
 
 // DTO for message requests
