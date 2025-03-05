@@ -1,8 +1,13 @@
 .idea
 .vscode
+.env
 HELP.md
 target/
+dockerrelated/
 mvnw
 mvnw.cmd
 frontend/
 src/main/resources/application-dev.properties
+dockerrelated/.dockerignore
+dockerrelated/Dockerfile
+
