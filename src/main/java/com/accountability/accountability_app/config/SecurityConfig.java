@@ -42,7 +42,7 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable) // Disable CSRF for stateless API
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/register", "/auth/login").permitAll() // Public endpoints
+                        .requestMatchers("/auth/register", "/auth/login", "/report-issue/**").permitAll() // Public endpoints
                         .requestMatchers("/api/messages/stream/**").permitAll()  // Allow SSE without auth (if needed)
                         .anyRequest().authenticated() // Protect all other endpoints
                 )

@@ -5,6 +5,7 @@ HELP.md
 target/
 dockerrelated/
 mvnw
+application-dev.properties
 mvnw.cmd
 frontend/
 src/main/resources/application-dev.properties
