@@ -43,6 +43,7 @@ public class AccountabilityPartnerController {
     @DeleteMapping("/remove-partner")
     public String removePartner(@RequestParam Long userId, @RequestParam Long partnerId) {
         System.out.println("Received a request to remove partner for userID: " + userId);
+        System.out.println("Hii");
         return accountabilityPartnerService.removePartner(userId, partnerId);
     }
 
